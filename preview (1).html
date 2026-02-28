@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>家庭名字猜燈謎—15題版</title>
+<style>
+body{
+  font-family:Arial;
+  text-align:center;
+  padding:20px;
+  background:#fff3e0;
+  position: relative;
+  overflow: hidden;
+}
+h2{color:#b71c1c;}
+button{
+  margin:5px;padding:10px 20px;font-size:16px;
+  border:none;border-radius:5px;background:#f44336;color:white;cursor:pointer;
+}
+button:hover{background:#d32f2f;}
+#result{font-size:20px;margin-top:10px;font-weight:bold;}
+#explain{font-size:16px;margin-top:5px;color:#555;}
+#score{color:#b71c1c;font-size:22px;}
+.firework{
+  position:absolute;width:6px;height:6px;border-radius:50%;
+  animation:explode 0.8s forwards;
+}
+@keyframes explode{
+  0%{transform:scale(1);opacity:1;}
+  100%{transform:scale(20);opacity:0;}
+}
+.lantern{
+  position:absolute;top:10px;font-size:30px;animation:lanternMove 5s linear infinite;
+}
+@keyframes lanternMove{
+  0%{left:-50px;}
+  100%{left:100%;}
+}
+</style>
+</head>
+<body>
+
+<!-- 飄動燈籠 -->
+<div class="lantern">🏮</div>
+<div class="lantern" style="top:60px;animation-delay:1s;">🏮</div>
+<div class="lantern" style="top:110px;animation-delay:2s;">🏮</div>
+
+<h2 id="question">題目提示</h2>
+<div id="options"></div>
+<p id="result"></p>
+<p id="explain"></p>
+<h3 id="score"></h3>
+<button id="nextBtn" onclick="nextQuestion()">下一題</button>
+
+<audio id="cheerAudio">
+  <source src="https://www.soundjay.com/misc/sounds/fireworks-01.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+// 名字與解釋
+let names = {
+  "美君":"品德高尚、容貌美麗的女子",
+  "曜聲":"光耀明亮、聲音清晰悅耳",
+  "卓勳":"卓越有才、功勳顯著",
+  "美惠":"美好、寬厚、善良",
+  "有德":"道德高尚、品德優良",
+  "立學":"建立學問、勤奮好學",
+  "以恆":"持之以恆、堅持不懈",
+  "延山":"延綿不斷、堅毅沉穩",
+  "郭菜":"清新自然、簡樸怡人",
+  "水濱":"靠近水邊、意境優美",
+  "蓁琦":"繁盛、珍奇、美好",
+  "秉居":"掌握、安定、穩重",
+  "建志":"建立志向、胸懷大志",
+  "喬安":"高大聰慧、平安穩重",
+  "聿琳":"書寫才華、美玉珍貴"
+};
+
+// 提示題庫
+let hints = [
+  {hint:"這位人品端正，氣質優雅", a:"美君"},
+  {hint:"聲音清亮，總是令人注目", a:"曜聲"},
+  {hint:"總是努力不懈，成就卓越", a:"卓勳"},
+  {hint:"溫柔善良，總喜歡幫助別人", a:"美惠"},
+  {hint:"做事公正、受到大家尊重", a:"有德"},
+  {hint:"喜歡學習新知識，認真刻苦", a:"立學"},
+  {hint:"做事情有毅力，不輕易放棄", a:"以恆"},
+  {hint:"穩重可靠，像山一樣堅定", a:"延山"},
+  {hint:"自然清新，充滿生活氣息", a:"郭菜"},
+  {hint:"喜歡親近大自然，柔和溫暖", a:"水濱"},
+  {hint:"活潑珍奇，總讓人驚喜", a:"蓁琦"},
+  {hint:"做事有條理、穩重可靠", a:"秉居"},
+  {hint:"志向遠大，充滿抱負", a:"建志"},
+  {hint:"聰明又安穩，讓人放心", a:"喬安"},
+  {hint:"才華出眾，令人欽佩", a:"聿琳"}
+];
+
+let current = 0;
+let score = 0;
+
+function showQuestion(){
+  document.getElementById("result").innerText="";
+  document.getElementById("explain").innerText="";
+  document.getElementById("nextBtn").style.display="none";
+  document.getElementById("options").innerHTML="";
+
+  document.getElementById("question").innerText = hints[current].hint;
+
+  // 生成隨機三個選項
+  let options = [hints[current].a];
+  while(options.length<3){
+    let rand = Object.keys(names)[Math.floor(Math.random()*Object.keys(names).length)];
+    if(!options.includes(rand)) options.push(rand);
+  }
+  options.sort(()=>Math.random()-0.5);
+
+  options.forEach(opt=>{
+    let btn = document.createElement("button");
+    btn.innerText = opt;
+    btn.onclick = ()=>checkAnswer(opt);
+    document.getElementById("options").appendChild(btn);
+  });
+}
+
+function checkAnswer(ans){
+  let audio = document.getElementById("cheerAudio");
+  let optDiv = document.getElementById("options");
+  Array.from(optDiv.children).forEach(b=>b.disabled=true);
+
+  if(ans==hints[current].a){
+    score++;
+    document.getElementById("result").innerText="🎉 答對了！";
+    triggerFirework();
+    audio.currentTime=0;
+    audio.play();
+  } else {
+    document.getElementById("result").innerText="❌ 答錯！正確答案是 "+hints[current].a;
+  }
+  document.getElementById("explain").innerText="解釋："+names[hints[current].a];
+  document.getElementById("nextBtn").style.display="inline-block";
+}
+
+function nextQuestion(){
+  current++;
+  if(current<hints.length){
+    showQuestion();
+  } else {
+    document.getElementById("question").innerText="🏆 遊戲結束！恭喜你！";
+    document.getElementById("options").innerHTML="";
+    document.getElementById("score").innerText="總分："+score+" 分";
+    celebrate();
+    document.getElementById("nextBtn").style.display="none";
+  }
+}
+
+function triggerFirework(){
+  for(let i=0;i<10;i++){
+    let f=document.createElement("div");
+    f.className="firework";
+    f.style.left=Math.random()*window.innerWidth+"px";
+    f.style.top=Math.random()*window.innerHeight+"px";
+    f.style.background=["#f44336","#ffeb3b","#ff9800","#4caf50","#2196f3"][Math.floor(Math.random()*5)];
+    document.body.appendChild(f);
+    setTimeout(()=>f.remove(),800);
+  }
+}
+
+function celebrate(){
+  for(let i=0;i<50;i++){
+    triggerFirework();
+  }
+}
+
+showQuestion();
+</script>
+</body>
+</html>
